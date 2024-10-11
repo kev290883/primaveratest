@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Testar API de Produtos</title>
+</head>
+<body>
+    <h1>Teste de API de Produtos</h1>
+    <button onclick="createProduct()">Criar Produto</button>
+
+    <script>
+        function createProduct() {
+            fetch('http://localhost:8080/createProduct', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    nome: 'Produto Teste',
+                    preco: 29.99
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Produto criado:', data);
+                alert('Produto criado com sucesso!');
+            })
+            .catch((error) => {
+                console.error('Erro:', error);
+                alert('Erro ao criar produto.');
+            });
+        }
+    </script>
+</body>
+</html>
