@@ -3,6 +3,7 @@ package com.example.helloworld.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.helloworld.messaging.RabbitMQSender;
 import com.example.helloworld.model.Produto;
 import com.example.helloworld.repository.ProdutoRepository;
 
@@ -18,6 +20,9 @@ public class HelloWorldController {
 
     @Autowired
     private ProdutoRepository produtoRepository;
+
+    @Autowired
+    private RabbitMQSender rabbitMQSender;
 
     // Endpoint para /hello
     @GetMapping("/hello")
@@ -47,7 +52,15 @@ public class HelloWorldController {
 
     // Endpoint para criar um produto
     @PostMapping("/createProduct")
-    public Produto createProduto(@RequestBody Produto produto) {
-        return produtoRepository.save(produto);
+    public ResponseEntity<Produto> createProduto(@RequestBody Produto produto) {
+        try {
+          // 1. Envia o produto para a fila do RabbitMQ
+          rabbitMQSender.send(produto);
+
+          // 2. Retorna imediatamente ao cliente que o produto foi enviado para a fila
+          return ResponseEntity.ok(produto);  
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 }
